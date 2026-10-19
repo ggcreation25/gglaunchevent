@@ -655,6 +655,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Trigger typewriter for slides 1 & 2 whenever they become active
+    // (runTypewriter is defined later in this closure; JS hoists declarations,
+    //  but since it uses let/const above it, we call it via a guarded reference)
+    if (typeof runTypewriter === 'function') {
+      runTypewriter(currentStep);
+    }
+
     // 2. Update header step indicator
     loaderStepIndicators.forEach((btn) => {
       const stepVal = parseInt(btn.getAttribute('data-target-step'), 10);
@@ -852,10 +859,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ---------------------------------------------------------------
+  // TYPEWRITER ENGINE for loader titles (Page 1 & 2)
+  // ---------------------------------------------------------------
+  const typewriterMap = {
+    1: { el: document.getElementById('loaderTitle1'), text: 'Today',      speed: 240 },
+    2: { el: document.getElementById('loaderTitle2'), text: '23 October', speed: 200 }
+  };
+  let typewriterTimer = null;
+
+  function runTypewriter(stepNum) {
+    // Cancel any running typewriter
+    if (typewriterTimer) { clearTimeout(typewriterTimer); typewriterTimer = null; }
+
+    const cfg = typewriterMap[stepNum];
+    if (!cfg || !cfg.el) return;
+
+    // Reset all other typewriter targets
+    Object.values(typewriterMap).forEach(c => {
+      if (c.el && c !== cfg) c.el.textContent = c.text; // show full text on non-active slides
+    });
+
+    // Start typing from scratch on the active one
+    cfg.el.textContent = '';
+    cfg.el.classList.add('typewriter-active');
+    let i = 0;
+
+    function typeNext() {
+      if (i < cfg.text.length) {
+        cfg.el.textContent = cfg.text.slice(0, i + 1);
+        i++;
+        // Glow flash on each new character
+        cfg.el.classList.remove('typewriter-char-glow');
+        void cfg.el.offsetWidth; // force reflow to restart animation
+        cfg.el.classList.add('typewriter-char-glow');
+        typewriterTimer = setTimeout(typeNext, cfg.speed);
+      } else {
+        // Done — remove cursor blink class & glow after a short pause
+        typewriterTimer = setTimeout(() => {
+          cfg.el.classList.remove('typewriter-active');
+          cfg.el.classList.remove('typewriter-char-glow');
+        }, 650);
+      }
+    }
+
+    // Small delay so the slide entrance animation has time to play
+    typewriterTimer = setTimeout(typeNext, 220);
+  }
+
   // Initialize loading screen on start
   if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
     document.body.style.overflow = 'hidden';
     updateLoaderUI();
     startStepProgress();
+    // Note: runTypewriter(1) is already called inside updateLoaderUI above
   }
 });
