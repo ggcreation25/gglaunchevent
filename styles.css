@@ -2281,6 +2281,443 @@ section {
 }
 
 /* ==========================================================================
+   MINIMAL SLEEK LAUNCH FOOTER
+   ========================================================================== */
+.footer-minimal {
+  padding: 2.2rem 0;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(8, 11, 18, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  position: relative;
+  z-index: 10;
+}
+
+.footer-minimal-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.footer-minimal-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-minimal-brand .brand-symbol {
+  font-size: 1.35rem;
+}
+
+.footer-minimal-brand .brand-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-main);
+}
+
+.footer-minimal-brand .brand-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold-glow);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.6rem;
+}
+
+.footer-minimal-copy {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.footer-minimal-socials {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .footer-minimal-inner {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 1.2rem;
+  }
+}
+
+/* ==========================================================================
+   VISITOR REGISTRATION MODAL & WELCOME BADGE
+   ========================================================================== */
+.btn-nav-register {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.1) 100%);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-glow);
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-nav-register:hover {
+  background: var(--gold-primary);
+  color: #000;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Visitor Welcome Badge (Personalized greeting above countdown) */
+.visitor-welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(245, 158, 11, 0.12) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-full);
+  padding: 0.55rem 1.4rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+  transition: var(--transition);
+}
+
+.visitor-welcome-badge.hidden {
+  display: none !important;
+}
+
+.visitor-welcome-badge .vw-icon {
+  font-size: 1.1rem;
+}
+
+.visitor-welcome-badge .vw-text {
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.visitor-welcome-badge .vw-text strong {
+  color: var(--gold-glow);
+}
+
+.visitor-welcome-badge .vw-edit-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: var(--transition);
+  margin-left: 0.2rem;
+}
+
+.visitor-welcome-badge .vw-edit-btn:hover {
+  background: var(--gold-primary);
+  color: #000;
+  border-color: var(--gold-glow);
+}
+
+/* Modal Overlay & Card */
+.visitor-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
+}
+
+.visitor-modal-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.visitor-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(16, 21, 35, 0.88) 0%, rgba(5, 7, 12, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.visitor-modal-card {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
+  width: 100%;
+  background: rgba(14, 19, 32, 0.95);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 2.4rem 2.2rem;
+  box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(245, 158, 11, 0.25);
+  transform: scale(1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.visitor-modal-overlay.hidden .visitor-modal-card {
+  transform: scale(0.92);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+
+.modal-icon-badge {
+  font-size: 2.6rem;
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.5));
+}
+
+.modal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--gold-primary);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 0.55rem;
+}
+
+.modal-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.modal-subtitle strong {
+  color: var(--text-main);
+}
+
+/* Modal Form Controls */
+.visitor-form .form-group {
+  margin-bottom: 1.3rem;
+}
+
+.visitor-form label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.visitor-form .req {
+  color: var(--gold-primary);
+}
+
+.visitor-form .input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.visitor-form .input-icon-wrap i {
+  position: absolute;
+  left: 1.1rem;
+  color: var(--gold-primary);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.visitor-form input {
+  width: 100%;
+  background: rgba(8, 11, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem 0.85rem 2.85rem;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+
+.visitor-form input:focus {
+  border-color: var(--gold-primary);
+  background: rgba(14, 19, 32, 0.9);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.3);
+}
+
+.visitor-form input::placeholder {
+  color: var(--text-dim);
+}
+
+.form-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  color: #25d366;
+  margin-top: 0.45rem;
+}
+
+.btn-modal-submit {
+  padding: 0.95rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-top: 0.6rem;
+}
+
+.btn-text-skip {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  padding: 0.75rem 0 0 0;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.btn-text-skip:hover {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+/* Success State Inside Modal */
+.visitor-success-state {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.visitor-success-state.hidden {
+  display: none;
+}
+
+.success-icon-wrap {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid #10b981;
+  color: #10b981;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.2rem auto;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+.success-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.success-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.8rem;
+}
+
+.success-desc strong {
+  color: var(--gold-glow);
+}
+
+.success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-whatsapp {
+  background: #25d366;
+  color: #ffffff;
+  border: none;
+  padding: 0.85rem 1.4rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
+  transition: var(--transition);
+}
+
+.btn-whatsapp:hover {
+  background: #22c55e;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 211, 102, 0.45);
+}
+
+/* ==========================================================================
    TOAST NOTIFICATIONS
    ========================================================================== */
 .toast-container {

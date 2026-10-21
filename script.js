@@ -641,7 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let autoAdvance = true;
   let progressAnimFrame = null;
   let stepStartTime = Date.now();
-  const stepDurations = [4000, 4200, 9000]; // Time for each page in ms
+  const stepDurations = [11500, 4200, 9000]; // Slide 1 synced to 10s 'Today' typewriter + pause
 
   function updateLoaderUI() {
     // 1. Update active slide
@@ -751,6 +751,11 @@ document.addEventListener('DOMContentLoaded', () => {
     playCelebrationFanfare();
     launchConfetti(0.5, 0.4);
     showToast('✨ Welcome to GG Creation Grand Launch 2026!');
+
+    // Prompt customer for name and mobile number if not yet registered
+    if (typeof checkAndPromptVisitor === 'function') {
+      checkAndPromptVisitor(700);
+    }
   }
 
   function openLoader() {
@@ -863,7 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // TYPEWRITER ENGINE for loader titles (Page 1 & 2)
   // ---------------------------------------------------------------
   const typewriterMap = {
-    1: { el: document.getElementById('loaderTitle1'), text: 'Today',      speed: 240 },
+    1: { el: document.getElementById('loaderTitle1'), text: 'Today',      speed: 2000 }, // 10 seconds total (5 letters × 2000ms)
     2: { el: document.getElementById('loaderTitle2'), text: '23 October', speed: 200 }
   };
   let typewriterTimer = null;
@@ -907,11 +912,194 @@ document.addEventListener('DOMContentLoaded', () => {
     typewriterTimer = setTimeout(typeNext, 220);
   }
 
-  // Initialize loading screen on start
-  if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
-    document.body.style.overflow = 'hidden';
-    updateLoaderUI();
-    startStepProgress();
-    // Note: runTypewriter(1) is already called inside updateLoaderUI above
+  // -------------------------------------------------------------
+  // 13. VISITOR REGISTRATION CONTROLLER (NAME & MOBILE NUMBER)
+  // Prompts any customer who comes to the website
+  // -------------------------------------------------------------
+  const visitorModal = document.getElementById('visitorModal');
+  const visitorFormWrap = document.getElementById('visitorFormWrap');
+  const visitorForm = document.getElementById('visitorForm');
+  const visitorNameInput = document.getElementById('visitorName');
+  const visitorMobileInput = document.getElementById('visitorMobile');
+  const closeVisitorModalBtn = document.getElementById('closeVisitorModalBtn');
+  const skipVisitorModalBtn = document.getElementById('skipVisitorModalBtn');
+  const continueToSiteBtn = document.getElementById('continueToSiteBtn');
+  const visitorSuccessState = document.getElementById('visitorSuccessState');
+  const successName = document.getElementById('successName');
+  const successMobile = document.getElementById('successMobile');
+  const whatsappShareBtn = document.getElementById('whatsappShareBtn');
+
+  // Trigger buttons
+  const openVisitorModalBtn = document.getElementById('openVisitorModalBtn');
+  const heroRegisterBtn = document.getElementById('heroRegisterBtn');
+  const navRegisterText = document.getElementById('navRegisterText');
+  const heroRegisterText = document.getElementById('heroRegisterText');
+
+  // Welcome badge
+  const visitorWelcomeBadge = document.getElementById('visitorWelcomeBadge');
+  const vwName = document.getElementById('vwName');
+  const vwMobile = document.getElementById('vwMobile');
+  const vwEditBtn = document.getElementById('vwEditBtn');
+
+  function getStoredVisitor() {
+    try {
+      const data = localStorage.getItem('gg_visitor');
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function renderVisitorBadge(visitor) {
+    if (!visitor) {
+      if (visitorWelcomeBadge) visitorWelcomeBadge.classList.add('hidden');
+      if (navRegisterText) navRegisterText.textContent = 'Register';
+      if (heroRegisterText) heroRegisterText.textContent = 'Register for Launch';
+      return;
+    }
+
+    if (visitorWelcomeBadge && vwName && vwMobile) {
+      vwName.textContent = visitor.name;
+      vwMobile.textContent = '+91 ' + visitor.mobile;
+      visitorWelcomeBadge.classList.remove('hidden');
+    }
+
+    if (navRegisterText) navRegisterText.textContent = visitor.name.split(' ')[0] + ' (VIP)';
+    if (heroRegisterText) heroRegisterText.textContent = 'Registered (VIP)';
+  }
+
+  function openVisitorModal(prefill = true) {
+    if (!visitorModal) return;
+    const visitor = getStoredVisitor();
+
+    // Reset view to form
+    if (visitorFormWrap) visitorFormWrap.classList.remove('hidden');
+    if (visitorSuccessState) visitorSuccessState.classList.add('hidden');
+
+    if (prefill && visitor) {
+      if (visitorNameInput) visitorNameInput.value = visitor.name;
+      if (visitorMobileInput) visitorMobileInput.value = visitor.mobile;
+    }
+
+    visitorModal.classList.remove('hidden');
+    playSoftChime();
+    setTimeout(() => {
+      if (visitorNameInput && !visitorNameInput.value) visitorNameInput.focus();
+    }, 200);
+  }
+
+  function closeVisitorModal() {
+    if (!visitorModal) return;
+    visitorModal.classList.add('hidden');
+  }
+
+  function checkAndPromptVisitor(delay = 600) {
+    const visitor = getStoredVisitor();
+    if (visitor) {
+      renderVisitorBadge(visitor);
+    } else {
+      setTimeout(() => {
+        // Only prompt if loader is closed/hidden
+        if (loadingScreen && !loadingScreen.classList.contains('hidden')) return;
+        openVisitorModal(false);
+      }, delay);
+    }
+  }
+
+  if (visitorForm) {
+    visitorForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameVal = visitorNameInput.value.trim();
+      const mobileVal = visitorMobileInput.value.trim().replace(/\D/g, '');
+
+      if (nameVal.length < 2) {
+        showToast('⚠️ Please enter a valid name.', 'fa-solid fa-triangle-exclamation');
+        visitorNameInput.focus();
+        return;
+      }
+
+      if (mobileVal.length !== 10) {
+        showToast('⚠️ Please enter a valid 10-digit mobile number.', 'fa-solid fa-triangle-exclamation');
+        visitorMobileInput.focus();
+        return;
+      }
+
+      const visitorData = {
+        name: nameVal,
+        mobile: mobileVal,
+        registeredAt: new Date().toISOString()
+      };
+
+      // Save to localStorage
+      try {
+        localStorage.setItem('gg_visitor', JSON.stringify(visitorData));
+        const allLeads = JSON.parse(localStorage.getItem('gg_all_leads') || '[]');
+        allLeads.push(visitorData);
+        localStorage.setItem('gg_all_leads', JSON.stringify(allLeads));
+      } catch (err) {
+        console.warn('Storage error', err);
+      }
+
+      // Populate Success State
+      if (successName) successName.textContent = nameVal;
+      if (successMobile) successMobile.textContent = '+91 ' + mobileVal;
+
+      if (whatsappShareBtn) {
+        const text = encodeURIComponent(
+          `🚜 *GG Creation Launch Registration*\n\n` +
+          `Name: ${nameVal}\n` +
+          `Mobile: +91 ${mobileVal}\n` +
+          `Date: Friday, October 23, 2026\n\n` +
+          `I want to receive live tractor mud pull stream links & updates!`
+        );
+        whatsappShareBtn.href = `https://wa.me/919043081667?text=${text}`;
+      }
+
+      // Toggle views inside modal
+      if (visitorFormWrap) visitorFormWrap.classList.add('hidden');
+      if (visitorSuccessState) visitorSuccessState.classList.remove('hidden');
+
+      // Update badge on page
+      renderVisitorBadge(visitorData);
+
+      // Fanfare & Confetti
+      playCelebrationFanfare();
+      launchConfetti(0.5, 0.4);
+      showToast(`🎉 Welcome, ${nameVal}! Registered with +91 ${mobileVal}`, 'fa-solid fa-circle-check');
+    });
+  }
+
+  // Event Listeners
+  if (closeVisitorModalBtn) closeVisitorModalBtn.addEventListener('click', closeVisitorModal);
+  if (skipVisitorModalBtn) skipVisitorModalBtn.addEventListener('click', closeVisitorModal);
+  if (continueToSiteBtn) continueToSiteBtn.addEventListener('click', closeVisitorModal);
+
+  if (openVisitorModalBtn) {
+    openVisitorModalBtn.addEventListener('click', () => openVisitorModal(true));
+  }
+
+  if (heroRegisterBtn) {
+    heroRegisterBtn.addEventListener('click', () => openVisitorModal(true));
+  }
+
+  if (vwEditBtn) {
+    vwEditBtn.addEventListener('click', () => openVisitorModal(true));
+  }
+
+  // Close on outside backdrop click
+  if (visitorModal) {
+    visitorModal.addEventListener('click', (e) => {
+      if (e.target === visitorModal || e.target.classList.contains('visitor-modal-backdrop')) {
+        closeVisitorModal();
+      }
+    });
+  }
+
+  // Initial Check on Page Load
+  const initialVisitor = getStoredVisitor();
+  if (initialVisitor) {
+    renderVisitorBadge(initialVisitor);
+  } else if (!loadingScreen || loadingScreen.classList.contains('hidden')) {
+    checkAndPromptVisitor(800);
   }
 });
