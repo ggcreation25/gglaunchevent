@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. TARGET DATE & LIVE COUNTDOWN (October 23, 2026 10:00:00 IST)
   // -------------------------------------------------------------
   const launchDate = new Date('2026-10-23T10:00:00+05:30').getTime();
+  const TARGET_LIVE_URL = 'https://ggcreation.in';
+  let hasRedirectedOnFinish = false;
 
   const elDays = document.getElementById('cdDays');
   const elHours = document.getElementById('cdHours');
@@ -26,20 +28,63 @@ document.addEventListener('DOMContentLoaded', () => {
   const loaderCdMinutes = document.getElementById('loaderCdMinutes');
   const loaderCdSeconds = document.getElementById('loaderCdSeconds');
 
+  function onCountdownFinished() {
+    if (elDays) elDays.textContent = '00';
+    if (elHours) elHours.textContent = '00';
+    if (elMinutes) elMinutes.textContent = '00';
+    if (elSeconds) elSeconds.textContent = '00';
+
+    if (loaderCdDays) loaderCdDays.textContent = '00';
+    if (loaderCdHours) loaderCdHours.textContent = '00';
+    if (loaderCdMinutes) loaderCdMinutes.textContent = '00';
+    if (loaderCdSeconds) loaderCdSeconds.textContent = '00';
+
+    // Update Slide 3 CTA button to open ggcreation.in
+    if (loaderEnterSiteBtn) {
+      loaderEnterSiteBtn.innerHTML = `
+        <span class="btn-loader-pulse"></span>
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        <span>ENTER GGCREATION.IN (NOW LIVE!)</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      `;
+      loaderEnterSiteBtn.onclick = (e) => {
+        e.preventDefault();
+        window.location.href = TARGET_LIVE_URL;
+      };
+    }
+
+    // Update countdown card badges
+    const liveBadges = document.querySelectorAll('.countdown-live-badge, .badge-text');
+    liveBadges.forEach(b => {
+      b.innerHTML = '<span class="pulse-spark"></span> 🎉 WE ARE LIVE! OPENING GGCREATION.IN';
+    });
+
+    // Update hero CTA button to open ggcreation.in
+    if (heroRegisterBtn) {
+      heroRegisterBtn.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i><span>Open ggcreation.in</span>';
+      heroRegisterBtn.onclick = (e) => {
+        e.preventDefault();
+        window.location.href = TARGET_LIVE_URL;
+      };
+    }
+
+    if (!hasRedirectedOnFinish) {
+      hasRedirectedOnFinish = true;
+      playCelebrationFanfare();
+      launchConfetti(0.5, 0.4);
+      showToast('🚀 Launch time reached! Opening ggcreation.in...', 'fa-solid fa-rocket');
+      setTimeout(() => {
+        window.location.href = TARGET_LIVE_URL;
+      }, 1500);
+    }
+  }
+
   function updateCountdown() {
     const now = new Date().getTime();
     const distance = launchDate - now;
 
     if (distance <= 0) {
-      if (elDays) elDays.textContent = '00';
-      if (elHours) elHours.textContent = '00';
-      if (elMinutes) elMinutes.textContent = '00';
-      if (elSeconds) elSeconds.textContent = '00';
-
-      if (loaderCdDays) loaderCdDays.textContent = '00';
-      if (loaderCdHours) loaderCdHours.textContent = '00';
-      if (loaderCdMinutes) loaderCdMinutes.textContent = '00';
-      if (loaderCdSeconds) loaderCdSeconds.textContent = '00';
+      onCountdownFinished();
       return;
     }
 
@@ -641,7 +686,56 @@ document.addEventListener('DOMContentLoaded', () => {
   let autoAdvance = true;
   let progressAnimFrame = null;
   let stepStartTime = Date.now();
-  const stepDurations = [11500, 4200, 9000]; // Slide 1 synced to 10s 'Today' typewriter + pause
+  const stepDurations = [3800, 4200, 7500]; // Balanced pacing: Slide 1 (3.8s Today), Slide 2 (4.2s Date), Slide 3 (7.5s Countdown & CTA)
+
+  // ---------------------------------------------------------------
+  // TYPEWRITER ENGINE for loader titles (Page 1 & 2)
+  // Normal typing speed (~180ms per char) for smooth, natural cadence
+  // ---------------------------------------------------------------
+  const typewriterMap = {
+    1: { el: document.getElementById('loaderTitle1'), text: 'Today',      speed: 180 }, // Normal human typing speed (~0.9s total)
+    2: { el: document.getElementById('loaderTitle2'), text: '23 October', speed: 180 }
+  };
+  let typewriterTimer = null;
+
+  function runTypewriter(stepNum) {
+    // Cancel any running typewriter
+    if (typewriterTimer) { clearTimeout(typewriterTimer); typewriterTimer = null; }
+
+    const cfg = typewriterMap[stepNum];
+    if (!cfg || !cfg.el) return;
+
+    // Reset all other typewriter targets
+    Object.values(typewriterMap).forEach(c => {
+      if (c.el && c !== cfg) c.el.textContent = c.text; // show full text on non-active slides
+    });
+
+    // Start typing from scratch on the active one
+    cfg.el.textContent = '';
+    cfg.el.classList.add('typewriter-active');
+    let i = 0;
+
+    function typeNext() {
+      if (i < cfg.text.length) {
+        cfg.el.textContent = cfg.text.slice(0, i + 1);
+        i++;
+        // Glow flash on each new character
+        cfg.el.classList.remove('typewriter-char-glow');
+        void cfg.el.offsetWidth; // force reflow to restart animation
+        cfg.el.classList.add('typewriter-char-glow');
+        typewriterTimer = setTimeout(typeNext, cfg.speed);
+      } else {
+        // Done — remove cursor blink class & glow after a short pause
+        typewriterTimer = setTimeout(() => {
+          cfg.el.classList.remove('typewriter-active');
+          cfg.el.classList.remove('typewriter-char-glow');
+        }, 650);
+      }
+    }
+
+    // Small delay so the slide entrance animation has time to play
+    typewriterTimer = setTimeout(typeNext, 220);
+  }
 
   function updateLoaderUI() {
     // 1. Update active slide
@@ -656,11 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Trigger typewriter for slides 1 & 2 whenever they become active
-    // (runTypewriter is defined later in this closure; JS hoists declarations,
-    //  but since it uses let/const above it, we call it via a guarded reference)
-    if (typeof runTypewriter === 'function') {
-      runTypewriter(currentStep);
-    }
+    runTypewriter(currentStep);
 
     // 2. Update header step indicator
     loaderStepIndicators.forEach((btn) => {
@@ -864,54 +954,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ---------------------------------------------------------------
-  // TYPEWRITER ENGINE for loader titles (Page 1 & 2)
-  // ---------------------------------------------------------------
-  const typewriterMap = {
-    1: { el: document.getElementById('loaderTitle1'), text: 'Today',      speed: 2000 }, // 10 seconds total (5 letters × 2000ms)
-    2: { el: document.getElementById('loaderTitle2'), text: '23 October', speed: 200 }
-  };
-  let typewriterTimer = null;
-
-  function runTypewriter(stepNum) {
-    // Cancel any running typewriter
-    if (typewriterTimer) { clearTimeout(typewriterTimer); typewriterTimer = null; }
-
-    const cfg = typewriterMap[stepNum];
-    if (!cfg || !cfg.el) return;
-
-    // Reset all other typewriter targets
-    Object.values(typewriterMap).forEach(c => {
-      if (c.el && c !== cfg) c.el.textContent = c.text; // show full text on non-active slides
-    });
-
-    // Start typing from scratch on the active one
-    cfg.el.textContent = '';
-    cfg.el.classList.add('typewriter-active');
-    let i = 0;
-
-    function typeNext() {
-      if (i < cfg.text.length) {
-        cfg.el.textContent = cfg.text.slice(0, i + 1);
-        i++;
-        // Glow flash on each new character
-        cfg.el.classList.remove('typewriter-char-glow');
-        void cfg.el.offsetWidth; // force reflow to restart animation
-        cfg.el.classList.add('typewriter-char-glow');
-        typewriterTimer = setTimeout(typeNext, cfg.speed);
-      } else {
-        // Done — remove cursor blink class & glow after a short pause
-        typewriterTimer = setTimeout(() => {
-          cfg.el.classList.remove('typewriter-active');
-          cfg.el.classList.remove('typewriter-char-glow');
-        }, 650);
-      }
-    }
-
-    // Small delay so the slide entrance animation has time to play
-    typewriterTimer = setTimeout(typeNext, 220);
-  }
-
   // -------------------------------------------------------------
   // 13. VISITOR REGISTRATION CONTROLLER (NAME & MOBILE NUMBER)
   // Prompts any customer who comes to the website
@@ -1086,6 +1128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     vwEditBtn.addEventListener('click', () => openVisitorModal(true));
   }
 
+  // Input formatting & digit filter for mobile number
+  if (visitorMobileInput) {
+    visitorMobileInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    });
+  }
+
   // Close on outside backdrop click
   if (visitorModal) {
     visitorModal.addEventListener('click', (e) => {
@@ -1095,7 +1144,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial Check on Page Load
+  // -------------------------------------------------------------
+  // INITIALIZE ON PAGE LOAD
+  // -------------------------------------------------------------
+  // 1. Start loading screen intro sequence (Slide 1: Today) & auto-progression
+  if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+    document.body.style.overflow = 'hidden';
+    updateLoaderUI();
+    startStepProgress();
+  }
+
+  // 2. Check registered visitor status
   const initialVisitor = getStoredVisitor();
   if (initialVisitor) {
     renderVisitorBadge(initialVisitor);
